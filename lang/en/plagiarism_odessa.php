@@ -21,10 +21,11 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['studentdisclosuredefault']  ='All files uploaded will be submitted to a plagiarism detection service';
+$string['odessa'] = 'Odessa plagiarism plugin';
+$string['odessaexplain'] = 'For more information on this plugin see: ';
+$string['pluginname'] = 'Odessa plagiarism plugin';
+$string['savedconfigsuccess'] = 'Plagiarism Settings Saved';
 $string['studentdisclosure'] = 'Student Disclosure';
 $string['studentdisclosure_help'] = 'This text will be displayed to all students on the file upload page.';
-$string['odessaexplain'] = 'For more information on this plugin see: ';
-$string['odessa'] = 'odessa template plagiarism plugin';
+$string['studentdisclosuredefault']  ='All files uploaded will be submitted to a plagiarism detection service';
 $string['useodessa'] ='Enable odessa';
-$string['savedconfigsuccess'] = 'Plagiarism Settings Saved';
