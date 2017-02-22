@@ -16,15 +16,15 @@
 
 /**
  *
- * @package   plagiarism_new
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @package   plagiarism_odessa
+ * @copyright 2017 Catalyst IT https://www.catalyst-au.net
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 $string['studentdisclosuredefault']  ='All files uploaded will be submitted to a plagiarism detection service';
 $string['studentdisclosure'] = 'Student Disclosure';
 $string['studentdisclosure_help'] = 'This text will be displayed to all students on the file upload page.';
-$string['newexplain'] = 'For more information on this plugin see: ';
-$string['new'] = 'New template plagiarism plugin';
-$string['usenew'] ='Enable New';
+$string['odessaexplain'] = 'For more information on this plugin see: ';
+$string['odessa'] = 'odessa template plagiarism plugin';
+$string['useodessa'] ='Enable odessa';
 $string['savedconfigsuccess'] = 'Plagiarism Settings Saved';

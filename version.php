@@ -15,6 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-$plugin->version =  2010101400;
-$plugin->requires = 2010042803;
-$plugin->cron     = 0;
+$plugin->version = 2017022200;
+$plugin->release = 2017022200;
+$plugin->requires = 2016052300;
+$plugin->maturity = MATURITY_ALPHA;
+$plugin->component = 'plagiarism_odessa';
+
+$plugin->cron = 0;
