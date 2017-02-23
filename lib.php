@@ -25,15 +25,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-if (!defined('MOODLE_INTERNAL')) {
-    die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
-}
+defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
-//get global class
 global $CFG;
 require_once($CFG->dirroot.'/plagiarism/lib.php');
 
-///// Turnitin Class ////////////////////////////////////////////////////
 class plagiarism_plugin_odessa extends plagiarism_plugin {
      /**
      * hook to allow plagiarism specific information to be displayed beside a submission 
@@ -104,42 +100,4 @@ class plagiarism_plugin_odessa extends plagiarism_plugin {
     public function cron() {
         //do any scheduled task stuff
     }
-}
-
-function odessa_event_file_uploaded($eventdata) {
-    $result = true;
-        //a file has been uploaded - submit this to the plagiarism prevention service.
-
-    return $result;
-}
-function odessa_event_files_done($eventdata) {
-    $result = true;
-        //mainly used by assignment finalize - used if you want to handle "submit for marking" events
-        //a file has been uploaded/finalised - submit this to the plagiarism prevention service.
-
-    return $result;
-}
-
-function odessa_event_mod_created($eventdata) {
-    $result = true;
-        //a odessa module has been created - this is a generic event that is called for all module types
-        //make sure you check the type of module before handling if needed.
-
-    return $result;
-}
-
-function odessa_event_mod_updated($eventdata) {
-    $result = true;
-        //a module has been updated - this is a generic event that is called for all module types
-        //make sure you check the type of module before handling if needed.
-
-    return $result;
-}
-
-function odessa_event_mod_deleted($eventdata) {
-    $result = true;
-        //a module has been deleted - this is a generic event that is called for all module types
-        //make sure you check the type of module before handling if needed.
-
-    return $result;
 }

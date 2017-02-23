@@ -1,34 +1,17 @@
 <?php
 
-$handlers = array (
-
-/*
- * Event Handlers
+/**
+ * $observers array attaches callbacks to moodle events.
  */
-    'assessable_file_uploaded' => array (
-        'handlerfile'      => '/plagiarism/odessa/lib.php',
-        'handlerfunction'  => 'odessa_event_file_uploaded',
-        'schedule'         => 'cron'
-    ),
-    'assessable_files_done' => array (
-        'handlerfile'      => '/plagiarism/odessa/lib.php',
-        'handlerfunction'  => 'odessa_event_files_done',
-        'schedule'         => 'cron'
-    ),
-    'mod_created' => array (
-        'handlerfile'      => '/plagiarism/odessa/lib.php',
-        'handlerfunction'  => 'odessa_event_mod_created',
-        'schedule'         => 'cron'
-    ),
-    'mod_updated' => array (
-        'handlerfile'      => '/plagiarism/odessa/lib.php',
-        'handlerfunction'  => 'odessa_event_mod_updated',
-        'schedule'         => 'cron'
-    ),
-    'mod_deleted' => array (
-        'handlerfile'      => '/plagiarism/odessa/lib.php',
-        'handlerfunction'  => 'odessa_event_mod_deleted',
-        'schedule'         => 'cron'
-    ),
 
+$observers = array (
+    // Observers for events in mod_assign.
+    array(
+        'eventname' => '\mod_assign\event\submission_created',
+        'callback' => 'plagiarism_odessa_observer::callback_submission_created',
+    ),
+    array(
+        'eventname' => '\mod_assign\event\submission_updated',
+        'callback' => 'plagiarism_odessa_observer::callback_submission_updated',
+    ),
 );
