@@ -26,7 +26,7 @@ class plagiarism_setup_form extends moodleform {
         global $CFG;
 
         $mform =& $this->_form;
-        $choices = array('No','Yes');
+        $choices = array('No', 'Yes');
         $mform->addElement('html', get_string('odessaexplain', 'plagiarism_odessa'));
         $mform->addElement('checkbox', 'odessa_use', get_string('useodessa', 'plagiarism_odessa'));
 

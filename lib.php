@@ -41,8 +41,8 @@ class plagiarism_plugin_odessa extends plagiarism_plugin {
         $userid = $linkarray['userid'];
         $file = $linkarray['file'];
         $output = '';
-        // Add link/information about this file to $output
-         
+        // Add link/information about this file to $output.
+
         return $output;
     }
 
@@ -74,7 +74,7 @@ class plagiarism_plugin_odessa extends plagiarism_plugin {
     public function print_disclosure($cmid) {
         global $OUTPUT;
         $plagiarismsettings = (array)get_config('plagiarism');
-        //TODO: check if this cmid has plagiarism enabled.
+        // TODO: check if this cmid has plagiarism enabled.
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
         $formatoptions = new stdClass;
         $formatoptions->noclean = true;
@@ -89,13 +89,13 @@ class plagiarism_plugin_odessa extends plagiarism_plugin {
      * @param object $cm - full cm object
      */
     public function update_status($course, $cm) {
-        // called at top of submissions/grading pages - allows printing of admin style links or updating status
+        // Called at top of submissions/grading pages - allows printing of admin style links or updating status.
     }
 
     /**
      * called by admin/cron.php
      */
     public function cron() {
-        // do any scheduled task stuff
+        // Do any scheduled task stuff.
     }
 }
