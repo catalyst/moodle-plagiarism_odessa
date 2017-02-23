@@ -37,14 +37,14 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 class plagiarism_odessa_observer {
     public static function callback_submission_created($event) {
         $result = true;
-        // TODO make use of ODESSA API call that e.g. uploads a file to ODESSA
+        // TODO make use of ODESSA API call that e.g. uploads a file to ODESSA.
 
         return $result;
     }
 
     public static function callback_submission_updated($event) {
         $result = true;
-        // TODO make use of ODESSA API call that e.g. re-uploads a file to ODESSA
+        // TODO make use of ODESSA API call that e.g. re-uploads a file to ODESSA.
 
         return $result;
     }

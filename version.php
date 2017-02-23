@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,10 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+
 $plugin->version = 2017022200;
 $plugin->release = 2017022200;
 $plugin->requires = 2016052300;
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->component = 'plagiarism_odessa';
-
 $plugin->cron = 0;

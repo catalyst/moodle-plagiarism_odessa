@@ -27,5 +27,5 @@ $string['pluginname'] = 'Odessa plagiarism plugin';
 $string['savedconfigsuccess'] = 'Plagiarism Settings Saved';
 $string['studentdisclosure'] = 'Student Disclosure';
 $string['studentdisclosure_help'] = 'This text will be displayed to all students on the file upload page.';
-$string['studentdisclosuredefault']  ='All files uploaded will be submitted to a plagiarism detection service';
-$string['useodessa'] ='Enable odessa';
+$string['studentdisclosuredefault'] = 'All files uploaded will be submitted to a plagiarism detection service';
+$string['useodessa'] = 'Enable odessa';

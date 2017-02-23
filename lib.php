@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -31,26 +30,26 @@ global $CFG;
 require_once($CFG->dirroot.'/plagiarism/lib.php');
 
 class plagiarism_plugin_odessa extends plagiarism_plugin {
-     /**
-     * hook to allow plagiarism specific information to be displayed beside a submission 
+    /**
+     * hook to allow plagiarism specific information to be displayed beside a submission
      * @param array  $linkarraycontains all relevant information for the plugin to generate a link
      * @return string
-     * 
      */
     public function get_links($linkarray) {
-        //$userid, $file, $cmid, $course, $module
+        // $userid, $file, $cmid, $course, $module
         $cmid = $linkarray['cmid'];
         $userid = $linkarray['userid'];
         $file = $linkarray['file'];
         $output = '';
-        //add link/information about this file to $output
+        // Add link/information about this file to $output
          
         return $output;
     }
 
-    /* hook to save plagiarism specific settings on a module settings page
+    /**
+     * hook to save plagiarism specific settings on a module settings page
      * @param object $data - data from an mform submission.
-    */
+     */
     public function save_form_elements($data) {
 
     }
@@ -61,9 +60,9 @@ class plagiarism_plugin_odessa extends plagiarism_plugin {
      * @param object $context - current context
      */
     public function get_form_elements_module($mform, $context, $modulename = "") {
-        //Add elements to form using standard mform like:
-        //$mform->addElement('hidden', $element);
-        //$mform->disabledIf('plagiarism_draft_submit', 'var4', 'eq', 0);
+        // Add elements to form using standard mform like:
+        // $mform->addElement('hidden', $element);
+        // $mform->disabledIf('plagiarism_draft_submit', 'var4', 'eq', 0);
 
     }
 
@@ -90,14 +89,13 @@ class plagiarism_plugin_odessa extends plagiarism_plugin {
      * @param object $cm - full cm object
      */
     public function update_status($course, $cm) {
-        //called at top of submissions/grading pages - allows printing of admin style links or updating status
+        // called at top of submissions/grading pages - allows printing of admin style links or updating status
     }
 
     /**
-     * called by admin/cron.php 
-     *
+     * called by admin/cron.php
      */
     public function cron() {
-        //do any scheduled task stuff
+        // do any scheduled task stuff
     }
 }

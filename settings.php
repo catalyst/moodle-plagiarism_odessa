@@ -23,57 +23,57 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-    require_once(dirname(dirname(__FILE__)) . '/../config.php');
-    require_once($CFG->libdir.'/adminlib.php');
-    require_once($CFG->libdir.'/plagiarismlib.php');
-    require_once($CFG->dirroot.'/plagiarism/odessa/lib.php');
-    require_once($CFG->dirroot.'/plagiarism/odessa/plagiarism_form.php');
+require_once(dirname(dirname(__FILE__)) . '/../config.php');
+require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->libdir.'/plagiarismlib.php');
+require_once($CFG->dirroot.'/plagiarism/odessa/lib.php');
+require_once($CFG->dirroot.'/plagiarism/odessa/plagiarism_form.php');
 
-    require_login();
-    admin_externalpage_setup('plagiarismodessa');
+require_login();
+admin_externalpage_setup('plagiarismodessa');
 
-    $context = get_context_instance(CONTEXT_SYSTEM);
+$context = get_context_instance(CONTEXT_SYSTEM);
 
-    require_capability('moodle/site:config', $context, $USER->id, true, "nopermissions");
+require_capability('moodle/site:config', $context, $USER->id, true, "nopermissions");
 
-    require_once('plagiarism_form.php');
-    $mform = new plagiarism_setup_form();
-    $plagiarismplugin = new plagiarism_plugin_odessa();
+require_once('plagiarism_form.php');
+$mform = new plagiarism_setup_form();
+$plagiarismplugin = new plagiarism_plugin_odessa();
 
-    if ($mform->is_cancelled()) {
-        redirect('');
+if ($mform->is_cancelled()) {
+    redirect('');
+}
+
+echo $OUTPUT->header();
+
+if (($data = $mform->get_data()) && confirm_sesskey()) {
+    if (!isset($data->odessa_use)) {
+        $data->odessa_use = 0;
     }
-
-    echo $OUTPUT->header();
-
-    if (($data = $mform->get_data()) && confirm_sesskey()) {
-        if (!isset($data->odessa_use)) {
-            $data->odessa_use = 0;
-        }
-        foreach ($data as $field=>$value) {
-            if (strpos($field, 'odessa')===0) {
-                if ($tiiconfigfield = $DB->get_record('config_plugins', array('name'=>$field, 'plugin'=>'plagiarism'))) {
-                    $tiiconfigfield->value = $value;
-                    if (! $DB->update_record('config_plugins', $tiiconfigfield)) {
-                        error("errorupdating");
-                    }
-                } else {
-                    $tiiconfigfield = new stdClass();
-                    $tiiconfigfield->value = $value;
-                    $tiiconfigfield->plugin = 'plagiarism';
-                    $tiiconfigfield->name = $field;
-                    if (! $DB->insert_record('config_plugins', $tiiconfigfield)) {
-                        error("errorinserting");
-                    }
+    foreach ($data as $field => $value) {
+        if (strpos($field, 'odessa') === 0) {
+            if ($tiiconfigfield = $DB->get_record('config_plugins', array('name' => $field, 'plugin' => 'plagiarism'))) {
+                $tiiconfigfield->value = $value;
+                if (!$DB->update_record('config_plugins', $tiiconfigfield)) {
+                    error("errorupdating");
+                }
+            } else {
+                $tiiconfigfield = new stdClass();
+                $tiiconfigfield->value = $value;
+                $tiiconfigfield->plugin = 'plagiarism';
+                $tiiconfigfield->name = $field;
+                if (!$DB->insert_record('config_plugins', $tiiconfigfield)) {
+                    error("errorinserting");
                 }
             }
         }
-        notify(get_string('savedconfigsuccess', 'plagiarism_odessa'), 'notifysuccess');
     }
-    $plagiarismsettings = (array)get_config('plagiarism');
-    $mform->set_data($plagiarismsettings);
-    
-    echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-    $mform->display();
-    echo $OUTPUT->box_end();
-    echo $OUTPUT->footer();
+    notify(get_string('savedconfigsuccess', 'plagiarism_odessa'), 'notifysuccess');
+}
+$plagiarismsettings = (array)get_config('plagiarism');
+$mform->set_data($plagiarismsettings);
+
+echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
+$mform->display();
+echo $OUTPUT->box_end();
+echo $OUTPUT->footer();
