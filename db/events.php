@@ -18,13 +18,15 @@
  * $observers array attaches callbacks to moodle events.
  */
 
+namespace plagiarism_odessa;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 $observers = array (
     // Observers for events in mod_assign.
     array(
-        'eventname' => '\mod_assign\event\submission_created',
-        'callback' => 'plagiarism_odessa_observer::callback_submission_created',
+        'eventname' => '\mod_assign\event\assessable_submitted',
+        'callback' => 'plagiarism_odessa\observer::callback_assessable_submitted',
     ),
     array(
         'eventname' => '\mod_assign\event\submission_updated',

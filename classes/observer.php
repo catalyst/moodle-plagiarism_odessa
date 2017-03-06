@@ -24,6 +24,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace plagiarism_odessa;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 require_once(__DIR__ . '/../vendor/autoload.php');
@@ -37,10 +39,9 @@ use GuzzleHttp\Client;
  *
  * @package plariarism_odessa
  */
-class plagiarism_odessa_observer {
-    public static function callback_submission_created($event) {
+class observer {
+    public static function callback_submission_updated($event) {
         $result = true;
-        // TODO make use of ODESSA API call that e.g. uploads a file to ODESSA.
 
         return $result;
     }
@@ -53,7 +54,13 @@ class plagiarism_odessa_observer {
      * @return bool
      * @throws \Exception
      */
-    public static function callback_submission_updated($event) {
+    public static function callback_assessable_submitted($event) {
+
+        $event->objecttable;
+
+        // Check if this submission exists.
+        $event->get_description();
+        $submission = new \plagiarism_odessa\submissions_manager($event);
 
         $baseurl = 'https://odessa';
 
@@ -81,7 +88,7 @@ class plagiarism_odessa_observer {
             $metadataresponse = $client->request('POST', '/api/submit', $options);
             // Successful response should give us endpoint (Location) where to submit user's file.
             if ($metadataresponse->getStatusCode() == 200 and $metadataresponse->hasHeader('Location')) {
-                plagiarism_odessa\submissions_manager::record_file_metadata_submittion();
+                $submission->record_file_metadata_submittion();
                 $endpoint = $metadataresponse->getHeader('Location')[0];
             } else {
                 throw new Exception('ERROR: Response for metadata request was not 200 or endpoint location was not provided.');
@@ -102,7 +109,7 @@ class plagiarism_odessa_observer {
             // Make a file PUT request.
             $fileputresponse = $client->request('PUT', $endpoint . $fileid . '.txt', $options);
             if ($fileputresponse->getStatusCode() == 200) {
-                plagiarism_odessa\submissions_manager::record_file_submittion();
+                $submission->record_file_submittion();
             } else {
                 throw new Exception('ERROR: Response for file PUT request was not 200.');
             }
@@ -123,7 +130,7 @@ class plagiarism_odessa_observer {
             // Make a file PUT request.
             $retrievalresponse = $client->request('GET', 'https://odessa/api/retrieve', $options);
             if ($fileputresponse->getStatusCode() == 200) {
-                plagiarism_odessa\submissions_manager::record_check_file_submittion();
+                $submission->record_check_file_submittion();
                 $body = $retrievalresponse->getBody()->getContents();
             } else {
                 throw new Exception('ERROR: Response for file PUT request was not 200.');
@@ -135,4 +142,7 @@ class plagiarism_odessa_observer {
 
         return true;
     }
+
+
+
 }

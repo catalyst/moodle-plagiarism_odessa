@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 global $CFG;
 require_once($CFG->dirroot.'/plagiarism/lib.php');
+require_once('locallib.php');
 
 class plagiarism_plugin_odessa extends plagiarism_plugin {
     /**
