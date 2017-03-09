@@ -25,11 +25,15 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 $observers = array (
     // Observers for events in mod_assign.
     array(
-        'eventname' => '\mod_assign\event\assessable_submitted',
-        'callback' => 'plagiarism_odessa\observer::callback_assessable_submitted',
+        'eventname' => '\assignsubmission_file\event\assessable_uploaded',
+        'callback' => 'plagiarism_odessa\observer::callback_assignsubmission_file_assessable_submitted',
     ),
-    array(
-        'eventname' => '\mod_assign\event\submission_updated',
-        'callback' => 'plagiarism_odessa_observer::callback_submission_updated',
-    ),
+//    array(
+//        'eventname' => '\mod_assign\event\assessable_submitted',
+//        'callback' => 'plagiarism_odessa\observer::callback_mod_assign_assessable_submitted',
+//    ),
+//    array(
+//        'eventname' => '\mod_assign\event\submission_updated',
+//        'callback' => 'plagiarism_odessa\observer::callback_submission_updated',
+//    ),
 );

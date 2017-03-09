@@ -7,12 +7,12 @@
     <TABLE NAME="odessa_submissions" COMMENT="General info about the submissions registered for checking by ODESSA.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="courseid" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="plugin" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="From which plugin the submission was created."/>
-        <FIELD NAME="filename" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="status" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="timesubmitted" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="When the submission was registered for sending to ODESSA."/>
+        <FIELD NAME="filepathnamehash" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="laststatus" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="result" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="When the submission was registered for sending to ODESSA."/>
         <FIELD NAME="timeupdated" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="When a submission was last updated."/>
       </FIELDS>
       <KEYS>

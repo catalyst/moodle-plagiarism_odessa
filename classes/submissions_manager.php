@@ -25,96 +25,94 @@
  */
 
 namespace plagiarism_odessa;
+defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
+
+// Odessa submission statuses.
+define('ODESSA_SUBMISSION_STATUS_NEW', 0);
+define('ODESSA_SUBMISSION_STATUS_METADATA_SENT', 1);
+define('ODESSA_SUBMISSION_STATUS_SENT', 2);
+define('ODESSA_SUBMISSION_STATUS_CHECKED', 3);
+define('ODESSA_SUBMISSION_STATUS_PROCESSED', 4);
+
+use time;
+
 /**
  * Class submissions_manager contains methods to keep track of what we have submitted to ODESSA
  */
 class submissions_manager {
 
     public $id;
-    public $userid;
-    public $courseid;
+    /**
+     * @var name of the submission plugin.
+     */
     public $plugin;
-    public $filename;
+    public $filepathnamehash;
     public $status;
-    public $event;
-    public $assign;
-    public $context;
-
-    public function __construct($event) {
-        global $DB;
-        // TODO get a record in table mdl_odessa_submissions or create a new one if it doesn't exist.
-
-        $this->event = $event->get_data();
-        $this->userid = $event->userid;
-        $this->courseid = $event->courseid;
-        $this->context = $event->get_context();
-        $this->component = $event->component;
-        // Each event (derived from \mod_assign\events\base) must have assign property:
-        // $this->plugin = $event->get_assign()->get_course_module()->get_module_type_name();
-        $this->plugin = $event->component;
-        $this->filename = $event->;
-
-        // Retrieve the file from the Files API.
-        // /$contextid/$component/$filearea/$itemid".$filepath.$filename
-        $fs = get_file_storage();
-        $file = $fs->get_file($event->contextid, $event->component, $filearea, $itemid, $filepath, $filename);
-        if (!$file) {
-            return false; // The file does not exist.
-        }
-//
-//        $this->context = $event->get_context();
-//
-//        $assign = $event->get_assign();
-        $data = $event->component;
-//        $cm_info = $assign->get_course_module();
-//        $module = $cm_info->get_module_type_name();
-        $conditions = [
-            'userid' => $event->userid,
-            'courseid' => $event->courseid,
-            'plugin' => $this->plugin,
-//            'filename' => $this->get_filename(),
-        ];
-
-
-        $this->id = $DB->get_record('odessa_submissions', $conditions);
-
-    }
+    public $laststatus;
+    public $result;
+    public $timecreated;
+    public $timeupdated;
 
     /**
-     * Retrieve content of the submission.
-     */
-    public function get_content() {
-        // TODO. Get the content of the submission. It might be different for each Moodle plugin.
-        // Retrieve the file from the Files API.
-        $fs = get_file_storage();
-        $file = $fs->get_file($this->event->contextid, $this->event->component, $filearea, $itemid, $filepath, $filename);
-        if (!$file) {
-            return false; // The file does not exist.
-        }
-    }
-    /**
-     * Return submission_id.
-     * Get an existing one or
+     * submissions_manager constructor.
+     * Keeping track of odessa submissions.
+     * Load existing record from odessa_submissions if it exists otherwise create a new one.
      *
-     * @param $event
+     * @param $plugin
+     * @param $filepathnamehash
      */
-    private function get_submission_id($event) {
+    public function __construct($plugin, $filepathnamehash) {
 
+        if (!$plugin or !$filepathnamehash) {
+            error_log('submissions_manager must be initialised with two parameters!');
+            return false;
+        }
+
+        global $DB;
+
+        $existingodessasubmission = $DB->get_record('odessa_submissions', [
+            'plugin' => $plugin,
+            'filepathnamehash' => $filepathnamehash,
+        ]); // TODO need to create index on this pair.
+        if ($existingodessasubmission) {
+            // Get a record from table mdl_odessa_submissions
+            $this->id = $existingodessasubmission->id;
+            $this->plugin = $existingodessasubmission->plugin;
+            $this->filepathnamehash = $existingodessasubmission->filepathnamehash;
+            $this->status = $existingodessasubmission->status;
+            $this->laststatus = $existingodessasubmission->laststatus;
+            $this->result = $existingodessasubmission->result;
+            $this->timecreated = $existingodessasubmission->timecreated;
+            $this->timeupdated = $existingodessasubmission->timeupdated;
+
+            return $this;
+        } else {
+            // Create a new record.
+            $newodessasubmission = new \stdClass();
+            $newodessasubmission->plugin = $plugin;
+            $newodessasubmission->filepathnamehash = $filepathnamehash;
+            $newodessasubmission->status = ODESSA_SUBMISSION_STATUS_NEW;
+            $newodessasubmission->timecreated = time();
+            $newodessasubmission->timeupdated = time();
+            $newodessasubmission->id = $DB->insert_record('odessa_submissions', $newodessasubmission);
+
+            return $newodessasubmission;
+        }
     }
 
-
-
-    public function record_file_submittion($event) {
-        // TODO keep track of what files have been submitted to ODESSA in special DB table.
-        // E.g. which user, which course, which topic, when, etc.
-        return true;
-    }
-
-    public function record_check_file_submittion($event) {
-        // TODO.
-    }
-
-    public function record_file_metadata_submittion($event) {
-        // TODO.
+    /**
+     * Update status of the odessa_submission
+     *
+     * @param $status
+     * @return bool
+     */
+    public function set_status($status) {
+        global $DB;
+        $this->laststatus = $this->status;
+        $this->status = $status;
+        $this->timeupdated = time();
+        if ($DB->update_record('odessa_submissions', $this)) {
+            return true;
+        }
     }
 }
