@@ -36,11 +36,6 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
  * @package plariarism_odessa
  */
 class observer {
-    public static function callback_submission_updated($event) {
-        $result = true;
-
-        return $result;
-    }
 
     /**
      * Draft for send updated file to ODESSA to check the API
@@ -62,23 +57,25 @@ class observer {
 
         $filepathnamehashes = $data['other']['pathnamehashes'];
         $fs = get_file_storage();
-        $clientapi = new \plagiarism_odessa\odessa_client_api();
 
         foreach ($filepathnamehashes as $filepathnamehash) {
             // $contents = $filepathnamehash->get_content();
-            $files[] = $fs->get_file_by_hash($filepathnamehash);
+            $file = $fs->get_file_by_hash($filepathnamehash);
 
             // Mark the odessa_submission as updated in DB.
             $submissionmanager = new \plagiarism_odessa\submissions_manager($plugin, $filepathnamehash);
 
             // For each file:
-            // $clientapi->send_metadata();
+            $clientapi = new \plagiarism_odessa\odessa_client_api($filepathnamehash);
+
+            $clientapi->send_metadata_set_endpoint();
             $submissionmanager->set_status(ODESSA_SUBMISSION_STATUS_METADATA_SENT);
 
-            // $clientapi->send_file();
+            $content = $file->get_content();
+            $clientapi->send_file($content);
             $submissionmanager->set_status(ODESSA_SUBMISSION_STATUS_SENT);
 
-            // $clientapi->retrieve_file();
+            $clientapi->retrieve_file();
             $submissionmanager->set_status(ODESSA_SUBMISSION_STATUS_CHECKED);
         }
     }

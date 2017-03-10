@@ -35,80 +35,77 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
  * @package plagiarism_odessa
  */
 class odessa_client_api {
-    
+
+    public $baseurl;
     public $client;
-    public $baseurl = 'https://odessa';
-    public $fileid = '12121212121212';
+    public $hash;
+    public $endpoint;
 
     /**
      * odessa_client_api constructor.
      * initialise the API communication. Set default auth headers.
+     *
+     * @param $hash unique hash of the Moodle file.
      */
-    public function __construct() {
+    public function __construct($hash) {
         // TODO get connection settings from the plugin admin settings.
+        $this->baseurl = 'https://odessa';
         $this->client = new Client([
             'base_uri' => $this->baseurl,
             'headers' => ['X-Auth-Token' => '1784d1d4-ac5b-4db1-94a5-2b1e23e1e804'],
             'verify' => false,
         ]);
+        $this->hash = $hash;
     }
 
     /**
-     * Send metadata request API to ODESSA.
+     * Send metadata request to ODESSA
+     *
+     * @param $hash unique id the represents Moodle file.
+     * @return mixed string with endpoint where to send the file.
      */
-    public function send_metadata() {
-        // TODO
-        // Phase 1.
-        // Make a Metadata request.
-        // JSON params of the call should be retrieved from the $event. Make a stub for just now.
-        $options = [
-            'json' => [
-                'id' => $this->fileid,
-                'course' => 'Maths 101',
-                'user' => '4',
-                'submission' => '42731',
-            ]
-        ];
+    public function send_metadata_set_endpoint() {
+        $options = ['json' => ['id' => $this->hash]];
 
         try {
             $metadataresponse = $this->client->request('POST', '/api/submit', $options);
             // Successful response should give us endpoint (Location) where to submit user's file.
             if ($metadataresponse->getStatusCode() == 200 and $metadataresponse->hasHeader('Location')) {
-                //$submission->record_file_metadata_submittion();
-                $endpoint = $metadataresponse->getHeader('Location')[0];
+                $this->endpoint = $metadataresponse->getHeader('Location')[0];
+                return true;
             } else {
                 throw new Exception('ERROR: Response for metadata request was not 200 or endpoint location was not provided.');
             }
         } catch(\Exception $e) {
             echo $e->getMessage();
-            return;
         }
     }
 
     /**
      * Send file API to ODESSA.
-     * 
-     * @param $file
+     *
+     * @param $content string text to send to ODESSA checker
+     * @return bool|exception true if file was accepted by ODESSA, exception otherwise.
      */
-    public function send_file($file) {
-        // Phase 2.
-        // Submit user file to ODESSA checker.
-        $body = \GuzzleHttp\Psr7\stream_for('hello!');
-        $options = [
-            'body' => $body,
-        ];
+    public function send_file($content) {
+
+        // Check the endpoint is set.
+        if (empty($this->endpoint)) {
+            return false;
+        }
+
+        $options = ['body' => $content];
 
         try {
             // Make a file PUT request.
-            $fileputresponse = $this->client->request('PUT', $endpoint . $this->fileid . '.txt', $options);
+            $fileputresponse = $this->client->request('PUT', $this->endpoint . $this->hash, $options);
             if ($fileputresponse->getStatusCode() == 200) {
-                // $submission->record_file_submittion();
+                return true;
             } else {
                 throw new Exception('ERROR: Response for file PUT request was not 200.');
             }
         } catch(\Exception $e) {
             echo $e->getMessage();
-            return;
         }
     }
 
@@ -116,26 +113,21 @@ class odessa_client_api {
      * Retrieve file API from ODESSA
      */
     public function retrieve_file() {
-        // Phase 3.
         // Test retrieval the file data from ODESSA
-        $options = [
-            'json' => [
-                'ids' => [$this->fileid,],
-            ],
-        ];
+        $options = ['json' => ['ids' => [$this->hash]]];
 
         try {
             // Make a file PUT request.
             $retrievalresponse = $this->client->request('GET', 'https://odessa/api/retrieve', $options);
-            if ($fileputresponse->getStatusCode() == 200) {
+            if ($retrievalresponse->getStatusCode() == 200) {
                 // $submission->record_check_file_submittion();
                 $body = $retrievalresponse->getBody()->getContents();
+                return $body;
             } else {
                 throw new Exception('ERROR: Response for file PUT request was not 200.');
             }
         } catch(\Exception $e) {
             echo $e->getMessage();
-            return;
         }
     }
 }
