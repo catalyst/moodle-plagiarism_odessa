@@ -22,3 +22,6 @@ $plugin->requires = 2016052300;
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->component = 'plagiarism_odessa';
 $plugin->cron = 0;
+$plugin->dependencies = array(
+    'local_aws' => 2017030100
+);

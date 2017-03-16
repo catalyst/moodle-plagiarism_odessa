@@ -1,8 +1,0 @@
-{
-    "name": "odessa-api/odessa-php-rest-client",
-    "type": "library",
-    "minimum-stability": "dev",
-    "require": {
-        "guzzlehttp/guzzle-services": "^1.1"
-    }
-}
