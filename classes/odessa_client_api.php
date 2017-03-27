@@ -25,7 +25,9 @@
  */
 
 namespace plagiarism_odessa;
-require_once(__DIR__ . '/../vendor/autoload.php');
+
+global $CFG;
+require_once($CFG->dirroot . '/local/aws/sdk/aws-autoloader.php');
 use GuzzleHttp\Client;
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');

@@ -32,13 +32,15 @@ require_once($CFG->dirroot.'/plagiarism/odessa/plagiarism_form.php');
 require_login();
 admin_externalpage_setup('plagiarismodessa');
 
-$context = get_context_instance(CONTEXT_SYSTEM);
+$context = context_system::instance();
+
+//submissions = submissions_mod_assign::get_file_submissions();
 
 require_capability('moodle/site:config', $context, $USER->id, true, "nopermissions");
 
 require_once('plagiarism_form.php');
 $mform = new plagiarism_setup_form();
-$plagiarismplugin = new plagiarism_plugin_odessa();
+//$plagiarismplugin = new plagiarism_plugin_odessa();
 
 if ($mform->is_cancelled()) {
     redirect('');

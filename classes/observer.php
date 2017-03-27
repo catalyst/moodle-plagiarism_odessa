@@ -52,31 +52,37 @@ class observer {
             error_log('Unrecognised event');
         }
 
-        $plugin = $event->component;
         $data = $event->get_data();
+        list($plugin, $type) = self::get_plugin_from_component($event->component);
+        $submissionid = $data['objectid'];
 
-        $filepathnamehashes = $data['other']['pathnamehashes'];
-        $fs = get_file_storage();
+        // Queue a new submission in the odessa submissions manager.
+        new submissions_manager($plugin, $type, $submissionid);
+    }
 
-        foreach ($filepathnamehashes as $filepathnamehash) {
-            // $contents = $filepathnamehash->get_content();
-            $file = $fs->get_file_by_hash($filepathnamehash);
+    public static function callback_assignsubmission_onlinetext_assessable_submitted($event) {
+        // Make sure we are processing a correct event.
+        if ($event->eventname != '\assignsubmission_onlinetext\event\assessable_uploaded') {
+            error_log('Unrecognised event');
+        }
 
-            // Mark the odessa_submission as updated in DB.
-            $submissionmanager = new \plagiarism_odessa\submissions_manager($plugin, $filepathnamehash);
+        $data = $event->get_data();
+        list($plugin, $type) = self::get_plugin_from_component($event->component);
+        $submissionid = $data['objectid'];
 
-            // For each file:
-            $clientapi = new \plagiarism_odessa\odessa_client_api($filepathnamehash);
+        // Queue a new submission in the odessa submissions manager.
+        new submissions_manager($plugin, $type, $submissionid);
 
-            $clientapi->send_metadata_set_endpoint();
-            $submissionmanager->set_status(ODESSA_SUBMISSION_STATUS_METADATA_SENT);
+    }
 
-            $content = $file->get_content();
-            $clientapi->send_file($content);
-            $submissionmanager->set_status(ODESSA_SUBMISSION_STATUS_SENT);
-
-            $clientapi->retrieve_file();
-            $submissionmanager->set_status(ODESSA_SUBMISSION_STATUS_CHECKED);
+    public static function get_plugin_from_component($component) {
+        switch ($component) {
+            case 'assignsubmission_file':
+                return array('mod_assign', 'file');
+            case 'assignsubmission_onlinetext':
+                return array('mod_assign', 'onlinetext');
+            default:
+                return;
         }
     }
 }
