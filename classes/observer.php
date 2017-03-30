@@ -36,53 +36,27 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
  * @package plariarism_odessa
  */
 class observer {
-
     /**
-     * Draft for send updated file to ODESSA to check the API
-     * https://docs.google.com/document/d/1-AUwdfauYsE2YtSgZcTblanZHCu00olzdApBNP3wtZA/edit#
+     * Record a submission from assignsubmission_onlinetext event 'assessable_uploaded'
+     * in odessa submissions manager.
      *
-     * @param $event
-     * @return bool
-     * @throws \Exception
+     * @param $event object expected event is object of extension of class \core\event\assessable_uploaded, e.g.
+     * \assignsubmission_onlinetext\event\assessable_uploaded
+     * \assignsubmission_file\event\assessable_uploaded
+     * \mod_workshop\event\assessable_uploaded
+     * \mod_forum\event\assessable_uploaded
      */
-    public static function callback_assignsubmission_file_assessable_submitted($event) {
+    public static function callback_upon_assessable_uploaded($event) {
+        $eventdata = $event->get_data();
 
-        // Make sure we are processing a correct event.
-        if ($event->eventname != '\assignsubmission_file\event\assessable_uploaded') {
-            error_log('Unrecognised event');
-        }
+        $params = array(
+            'component' => $eventdata['component'],
+            'objecttable' => $eventdata['objecttable'],
+            'objectid' => $eventdata['objectid'],
+            'userid' => $eventdata['userid'],
+            'courseid' => $eventdata['courseid'],
+        );
 
-        $data = $event->get_data();
-        list($plugin, $type) = self::get_plugin_from_component($event->component);
-        $submissionid = $data['objectid'];
-
-        // Queue a new submission in the odessa submissions manager.
-        new submissions_manager($plugin, $type, $submissionid);
-    }
-
-    public static function callback_assignsubmission_onlinetext_assessable_submitted($event) {
-        // Make sure we are processing a correct event.
-        if ($event->eventname != '\assignsubmission_onlinetext\event\assessable_uploaded') {
-            error_log('Unrecognised event');
-        }
-
-        $data = $event->get_data();
-        list($plugin, $type) = self::get_plugin_from_component($event->component);
-        $submissionid = $data['objectid'];
-
-        // Queue a new submission in the odessa submissions manager.
-        new submissions_manager($plugin, $type, $submissionid);
-
-    }
-
-    public static function get_plugin_from_component($component) {
-        switch ($component) {
-            case 'assignsubmission_file':
-                return array('mod_assign', 'file');
-            case 'assignsubmission_onlinetext':
-                return array('mod_assign', 'onlinetext');
-            default:
-                return;
-        }
+        new submissions_manager($params);
     }
 }
