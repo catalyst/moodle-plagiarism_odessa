@@ -26,11 +26,11 @@ $observers = array (
     // Observers for events in mod_assign.
     array(
         'eventname' => '\assignsubmission_onlinetext\event\assessable_uploaded',
-        'callback' => 'plagiarism_odessa\observer::callback_upon_assessable_uploaded',
+        'callback' => 'plagiarism_odessa\observer::callback_assessable_uploaded_onlinetext',
     ),
     array(
         'eventname' => '\assignsubmission_file\event\assessable_uploaded',
-        'callback' => 'plagiarism_odessa\observer::callback_upon_assessable_uploaded',
+        'callback' => 'plagiarism_odessa\observer::callback_assessable_uploaded_file',
     ),
     array(
         'eventname' => '\mod_workshop\event\assessable_uploaded',

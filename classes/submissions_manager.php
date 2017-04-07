@@ -34,8 +34,6 @@ define('ODESSA_SUBMISSION_STATUS_SENT', 2);
 define('ODESSA_SUBMISSION_STATUS_CHECKED', 3);
 define('ODESSA_SUBMISSION_STATUS_PROCESSED', 4);
 
-use time;
-
 /**
  * Class submissions_manager contains methods to keep track of what we have submitted to ODESSA
  */
@@ -43,12 +41,11 @@ class submissions_manager {
 
     public $id;
     public $component;
-    public $objecttable;
-    public $objectid;
     public $userid;
     public $courseid;
     public $contextid;
-    public $contextinstanceid;
+    public $pathnamehashe;
+    public $contenthash;
     public $status;
     public $laststatus;
     public $result;
@@ -60,12 +57,15 @@ class submissions_manager {
      * Keeping track of odessa submissions.
      * Load existing record from odessa_submissions if it exists otherwise create a new one.
      *
-     * @param $params array like array(
-     *      'component' => $component,
-     *      'objecttable' => $objecttable,
-     *      'objectid' => $objectid,
-     *      'userid' => $userid,
-     *      'courseid' => $courseid,
+     * @param $params = array(
+    'component' => $eventdata['contextid'],
+    'userid' => $eventdata['userid'],
+    'courseid' => $eventdata['courseid'],
+    'contextid' => $eventdata['contextid'],
+    'pathnamehashe' => $file->get_pathnamehash(),
+    'contenthash' => $file->get_contenthash(),
+    'timecreated' => $eventdata['timecreated'],
+    );
      * )
      */
     public function __construct($params) {
@@ -75,10 +75,11 @@ class submissions_manager {
         }
         $this->id = $submission->id;
         $this->component = $submission->component;
-        $this->objecttable = $submission->objecttable;
-        $this->objectid = $submission->objectid;
         $this->userid = $submission->userid;
         $this->courseid = $submission->courseid;
+        $this->contextid = $submission->contextid;
+        $this->pathnamehash = $submission->pathnamehash;
+        $this->contenthash = $submission->contenthash;
         $this->status = $submission->status;
         $this->laststatus = $submission->laststatus;
         $this->result = $submission->result;
@@ -88,25 +89,29 @@ class submissions_manager {
 
     protected function get_existing($params) {
         global $DB;
+
+        // When checking existing submissions we should not check timecreated.
+        unset($params['timecreated']);
         return $DB->get_record('odessa_submissions', $params);
     }
 
     protected function create_new($params) {
         global $DB;
-        $newodessasubmission = new \stdClass();
-        $newodessasubmission->component = $params['component'];
-        $newodessasubmission->objecttable = $params['objecttable'];
-        $newodessasubmission->objectid = $params['objectid'];
-        $newodessasubmission->userid = $params['userid'];
-        $newodessasubmission->courseid = $params['courseid'];
-        $newodessasubmission->status = ODESSA_SUBMISSION_STATUS_NEW;
-//        $newodessasubmission->laststatus = '';
-//        $newodessasubmission->result = '';
-        $newodessasubmission->timecreated = time();
-        $newodessasubmission->timeupdated = time();
-        $newodessasubmission->id = $DB->insert_record('odessa_submissions', $newodessasubmission);
+        $submission = new \stdClass();
+        $submission->component = $params['component'];
+        $submission->userid = $params['userid'];
+        $submission->courseid = $params['courseid'];
+        $submission->contextid = $params['contextid'];
+        $submission->pathnamehash = $params['pathnamehash'];
+        $submission->contenthash = $params['contenthash'];
+        $submission->status = ODESSA_SUBMISSION_STATUS_NEW;
+        $submission->laststatus = '';
+        $submission->result = '';
+        $submission->timecreated = time();
+        $submission->timeupdated = time();
+        $submission->id = $DB->insert_record('odessa_submissions', $submission);
 
-        return $newodessasubmission;
+        return $submission;
     }
 
     /**
@@ -196,4 +201,8 @@ FROM
         }
     }
 
+    public static function get_user_submissions_by_id($objectid) {
+        global $DB;
+        return $DB->get_records('odessa_submissions', array('objectid' => $objectid));
+    }
 }

@@ -46,17 +46,59 @@ class observer {
      * \mod_workshop\event\assessable_uploaded
      * \mod_forum\event\assessable_uploaded
      */
-    public static function callback_upon_assessable_uploaded($event) {
+    public static function callback_assessable_uploaded_file($event) {
         $eventdata = $event->get_data();
+        $filepathnamehashes = $eventdata['other']['pathnamehashes'];
+        $fs = get_file_storage();
+        foreach ($filepathnamehashes as $pathnamehash) {
+            $file = $fs->get_file_by_hash($pathnamehash);
+            $params = array(
+                'component' => $eventdata['component'],
+                'userid' => $eventdata['userid'],
+                'courseid' => $eventdata['courseid'],
+                'contextid' => $eventdata['contextid'],
+                'pathnamehash' => $pathnamehash,
+                'contenthash' => $file->get_contenthash(),
+                'timecreated' => $eventdata['timecreated'],
+            );
 
-        $params = array(
-            'component' => $eventdata['component'],
-            'objecttable' => $eventdata['objecttable'],
-            'objectid' => $eventdata['objectid'],
-            'userid' => $eventdata['userid'],
-            'courseid' => $eventdata['courseid'],
-        );
+            new submissions_manager($params);
+        }
+    }
 
-        new submissions_manager($params);
+    public static function callback_assessable_uploaded_onlinetext($event) {
+        $eventdata = $event->get_data();
+        $onlinetext = $eventdata['other']['content'];
+
+        $contenthash = sha1($onlinetext);
+
+        // check if this contenthash already exists.
+        // We will save the online submission text via File_API.
+        $fs = get_file_storage();
+
+        if (!$fs->content_exists($contenthash)) {
+            $filerecord = array(
+                'component' => 'assignsubmission_onlinetext',
+                'filearea' => 'odessa_submissions_assignsubmission_onlinetext',
+                'contextid' => $eventdata['contextid'],
+                'itemid' => $eventdata['objectid'],
+                'filename' => 'onlinetext.txt',
+                'filepath' => '/',
+            );
+
+            $file = $fs->create_file_from_string($filerecord, $onlinetext);
+
+            $params = array(
+                'component' => $eventdata['component'],
+                'userid' => $eventdata['userid'],
+                'courseid' => $eventdata['courseid'],
+                'contextid' => $eventdata['contextid'],
+                'pathnamehash' => $file->get_pathnamehash(),
+                'contenthash' => $file->get_contenthash(),
+                'timecreated' => $eventdata['timecreated'],
+            );
+
+            new submissions_manager($params);
+        }
     }
 }

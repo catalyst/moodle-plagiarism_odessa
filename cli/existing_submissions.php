@@ -60,8 +60,89 @@ Example:
     echo $help;
     exit(0);
 } elseif ($options['plugin'] == 'mod_assign') {
-    submissions_manager::get_submissions_assignsubmission_file();
-    submissions_manager::get_submissions_assignsubmission_onlinetext();
+    require_once($CFG->dirroot . '/mod/assign/locallib.php');
+
+    foreach (get_courses('all') as $course) {
+        foreach (get_coursemodules_in_course('assign', $course->id) as $coursemodule) {
+            $coursemodulecontext = \context_module::instance($coursemodule->id);
+            $assign = new \assign($coursemodulecontext, $coursemodule, $course);
+            $contextmodule = \context_module::instance($assign->get_course_module()->id);
+
+            foreach ($assign->get_submission_plugins() as $submissionplugin) {
+                $context = \context_course::instance($course->id);
+                foreach (get_enrolled_users($context) as $user) {
+
+                    if ($submissionplugin->get_type() == 'onlinetext') {
+                        // TODO fetch content.
+                        $submission = $assign->get_user_submission($user->id, false);
+                        if ($submission) {
+
+                            $onlinetext = $submissionplugin->get_editor_text('onlinetext', $submission->id);
+
+                            $contenthash = sha1($onlinetext);
+
+                            // check if this contenthash already exists.
+                            // We will save the online submission text via File_API.
+                            $fs = get_file_storage();
+
+                            if (!$fs->content_exists($contenthash)) {
+
+                                $filerecord = array(
+                                    'component' => 'assignsubmission_onlinetext',
+                                    'filearea' => 'odessa_submissions_assignsubmission_onlinetext',
+                                    'contextid' => $contextmodule->id,
+                                    'itemid' => $submission->id,
+                                    'filename' => 'onlinetext.txt',
+                                    'filepath' => '/',
+                                );
+
+                                $file = $fs->create_file_from_string($filerecord, $onlinetext);
+
+                                $params = array(
+                                    'component' => 'assignsubmission_onlinetext',
+                                    'userid' => $user->id,
+                                    'courseid' => $course->id,
+                                    'contextid' => $contextmodule->id,
+                                    'pathnamehash' => $file->get_pathnamehash(),
+                                    'contenthash' => $file->get_contenthash(),
+                                    'timecreated' => time(),
+                                );
+
+                                new submissions_manager($params);
+                            }
+                        }
+                    }
+
+                    if ($submissionplugin->get_type() == 'file') {
+                        // Fetch file obejcts
+                        $submission = $assign->get_user_submission($user->id, false);
+                        if ($submission) {
+
+                            foreach ($submissionplugin->get_files($submission, $user) as $file) {
+                                // Now need to save obtained files in submissions_manager
+                                $params = array(
+                                    'component' => 'assignsubmission_file',
+                                    'userid' => $user->id,
+                                    'courseid' => $course->id,
+                                    'contextid' => $contextmodule->id,
+                                    'pathnamehash' => $file->get_pathnamehash(),
+                                    'contenthash' => $file->get_contenthash(),
+                                    'timecreated' => time(),
+                                );
+
+                                new submissions_manager($params);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+//    foreach ($assign->get_submission_plugins() as $submissionplugin) {
+//        $submissionplugin->get_files();
+//    }
 
     echo "End" . PHP_EOL;
 }

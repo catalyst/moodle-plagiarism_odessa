@@ -37,11 +37,34 @@ class plagiarism_plugin_odessa extends plagiarism_plugin {
      * @return string
      */
     public function get_links($linkarray) {
-        // $userid, $file, $cmid, $course, $module
-        $cmid = $linkarray['cmid'];
-        $userid = $linkarray['userid'];
-        $file = $linkarray['file'];
-        $output = '';
+
+        // when $linkarray['content'] is set this is assignsubmission_onlinetext.
+        if (array_key_exists('content', $linkarray)) {
+            $params = array(
+                'component' => 'assignsubmission_onlinetext',
+                'objecttable' => 'assign_submission',
+                'objectid' => $linkarray['assignment'],
+                'userid' => $linkarray['userid'],
+                'courseid' => $linkarray['course'],
+            );
+        }
+
+        // when $linkarray['file'] is set then this is assignsubmission_file
+        if (array_key_exists('file', $linkarray)) {
+            $context = context_module::instance($linkarray['cmid']);
+//            $context->
+//            $params = array(
+//                'component' => 'assignsubmission_file',
+//                'objecttable' => 'assign_submission',
+//                'objectid' => $linkarray['assignment'],
+//                'userid' => $linkarray['userid'],
+//                'courseid' => $linkarray['course'],
+//            );
+        }
+
+        //$submission = new \plagiarism_odessa\submissions_manager($params);
+
+        $output = 'ODESSA score: 20 ' . PHP_EOL;
         // Add link/information about this file to $output.
 
         return $output;
@@ -90,6 +113,7 @@ class plagiarism_plugin_odessa extends plagiarism_plugin {
      * @param object $cm - full cm object
      */
     public function update_status($course, $cm) {
+        return "return update_status qweqwe";
         // Called at top of submissions/grading pages - allows printing of admin style links or updating status.
     }
 
