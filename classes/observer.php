@@ -49,11 +49,15 @@ class observer {
     public static function callback_assessable_uploaded_file($event) {
         $eventdata = $event->get_data();
         $filepathnamehashes = $eventdata['other']['pathnamehashes'];
+
+        submissions_manager::save_files($eventdata['courseid'], $eventdata['contextinstanceid'],
+            $eventdata['userid'], $eventdata['objectid'], $onlinetext);
+
         $fs = get_file_storage();
         foreach ($filepathnamehashes as $pathnamehash) {
             $file = $fs->get_file_by_hash($pathnamehash);
             $params = array(
-                'component' => $eventdata['component'],
+                'sourcecomponent' => $eventdata['component'],
                 'userid' => $eventdata['userid'],
                 'courseid' => $eventdata['courseid'],
                 'contextid' => $eventdata['contextid'],
@@ -70,35 +74,7 @@ class observer {
         $eventdata = $event->get_data();
         $onlinetext = $eventdata['other']['content'];
 
-        $contenthash = sha1($onlinetext);
-
-        // check if this contenthash already exists.
-        // We will save the online submission text via File_API.
-        $fs = get_file_storage();
-
-        if (!$fs->content_exists($contenthash)) {
-            $filerecord = array(
-                'component' => 'assignsubmission_onlinetext',
-                'filearea' => 'odessa_submissions_assignsubmission_onlinetext',
-                'contextid' => $eventdata['contextid'],
-                'itemid' => $eventdata['objectid'],
-                'filename' => 'onlinetext.txt',
-                'filepath' => '/',
-            );
-
-            $file = $fs->create_file_from_string($filerecord, $onlinetext);
-
-            $params = array(
-                'component' => $eventdata['component'],
-                'userid' => $eventdata['userid'],
-                'courseid' => $eventdata['courseid'],
-                'contextid' => $eventdata['contextid'],
-                'pathnamehash' => $file->get_pathnamehash(),
-                'contenthash' => $file->get_contenthash(),
-                'timecreated' => $eventdata['timecreated'],
-            );
-
-            new submissions_manager($params);
-        }
+        submissions_manager::save_onlinetext($eventdata['courseid'], $eventdata['contextinstanceid'],
+            $eventdata['userid'], $eventdata['objectid'], $onlinetext);
     }
 }

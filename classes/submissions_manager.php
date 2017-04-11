@@ -40,7 +40,7 @@ define('ODESSA_SUBMISSION_STATUS_PROCESSED', 4);
 class submissions_manager {
 
     public $id;
-    public $component;
+    public $sourcecomponent;
     public $userid;
     public $courseid;
     public $contextid;
@@ -58,7 +58,7 @@ class submissions_manager {
      * Load existing record from odessa_submissions if it exists otherwise create a new one.
      *
      * @param $params = array(
-    'component' => $eventdata['contextid'],
+    'sourcecomponent' => $eventdata['component'],
     'userid' => $eventdata['userid'],
     'courseid' => $eventdata['courseid'],
     'contextid' => $eventdata['contextid'],
@@ -74,7 +74,7 @@ class submissions_manager {
             $submission = $this->create_new($params);
         }
         $this->id = $submission->id;
-        $this->component = $submission->component;
+        $this->sourcecomponent = $submission->sourcecomponent;
         $this->userid = $submission->userid;
         $this->courseid = $submission->courseid;
         $this->contextid = $submission->contextid;
@@ -98,7 +98,7 @@ class submissions_manager {
     protected function create_new($params) {
         global $DB;
         $submission = new \stdClass();
-        $submission->component = $params['component'];
+        $submission->sourcecomponent = $params['sourcecomponent'];
         $submission->userid = $params['userid'];
         $submission->courseid = $params['courseid'];
         $submission->contextid = $params['contextid'];
@@ -131,78 +131,97 @@ class submissions_manager {
     }
 
     /**
-     * Get existing file submissions from mod_assign and put references to them
-     * in mdl_odessa_submissions it it doesn't exist.
+     * Go through the list of all courses, enrolled users, assignment submissions modules
+     * currently assignsubmission_onlinetext and assignsubmission_file
+     * and return them.
+     *
+     * @param string $modulename
      */
-    public static function get_submissions_assignsubmission_file() {
-        global $DB;
+    public static function get_existing_submissions($modulename = 'assign') {
+        global $CFG;
+        require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-        $sql = '
-SELECT
-    ass.id,
-    \'assignsubmission_file\' as "component",
-    \'assign_submission\' as "objecttable",
-    ass.assignment as "objectid",
-    ass.userid as "userid",
-    a.course as "courseid"
-FROM
-    {assignsubmission_file} assf
-    INNER JOIN {assign_submission} ass ON ass.assignment = assf.assignment AND ass.id = assf.submission
-    JOIN {assign} a on a.id = ass.assignment';
+        $existingsubmissions = array();
 
-        $filesubmissions = $DB->get_records_sql($sql);
+        foreach (get_courses('all') as $course) {
+            $coursecontext = \context_course::instance($course->id);
+            foreach (get_enrolled_users($coursecontext) as $user) {
+                foreach (get_coursemodules_in_course($modulename, $course->id) as $coursemodule) {
+                    $coursemodulecontext = \context_module::instance($coursemodule->id);
+                    $assign = new \assign($coursemodulecontext, $coursemodule, $course);
+                    foreach ($assign->get_submission_plugins() as $submissionplugin) {
+                        if ($submissionplugin->get_type() == 'onlinetext') {
+                            $submission = $assign->get_user_submission($user->id, false);
+                            if ($submission) {
+                                $onlinetext = $submissionplugin->get_editor_text('onlinetext', $submission->id);
+                                self::save_onlinetext($course->id, $coursemodulecontext->id, $user->id, $submission->id, $onlinetext);
+                            }
+                        }
 
+                        if ($submissionplugin->get_type() == 'file') {
+                            // Fetch file obejcts
+                            $submission = $assign->get_user_submission($user->id, false);
+                            if ($submission) {
+                                self::save_files($submissionplugin, $user, $submission, $course->id, $coursemodulecontext->id);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-        foreach ($filesubmissions as $submission) {
-            // Prepare submissions_manager object params.
+        return $existingsubmissions;
+    }
+
+    public static function save_onlinetext($courseid, $coursemodulecontextid, $userid, $submissionid, $onlinetext) {
+        $contenthash = sha1($onlinetext);
+
+        $fs = get_file_storage();
+
+        $filerecord = new \stdClass;
+        $filerecord->component = 'odessa_submissions';
+        $filerecord->filearea = 'assignsubmission_onlinetext';
+        $filerecord->contextid = $coursemodulecontextid;
+        $filerecord->userid = $userid;
+        $filerecord->itemid = $submissionid;
+        $filerecord->filename = 'onlinetext.txt';
+        $filerecord->filepath = '/';
+
+        // If file with this contenthash already exists we get reference to that file.
+        if ($fs->content_exists($contenthash)) {
+            $file = $fs->get_file_instance($filerecord);
+        } else { // If it doesn't exist then we create it.
+            $file = $fs->create_file_from_string($filerecord, $onlinetext);
+        }
+
+        $params = array(
+            'component' => 'assignsubmission_onlinetext',
+            'userid' => $userid,
+            'courseid' => $courseid,
+            'contextid' => $coursemodulecontextid,
+            'pathnamehash' => $file->get_pathnamehash(),
+            'contenthash' => $file->get_contenthash(),
+            'timecreated' => time(),
+        );
+
+        new self($params);
+    }
+
+    public static function save_files($submissionplugin, $user, $submission, $courseid, $coursemodulecontextid) {
+        foreach ($submissionplugin->get_files($submission, $user) as $file) {
+            // Now need to save obtained files in submissions_manager
             $params = array(
-                'component' => $submission->component,
-                'objecttable' => $submission->objecttable,
-                'objectid' => $submission->objectid,
-                'userid' => $submission->userid,
-                'courseid' => $submission->courseid,
+                'component' => 'assignsubmission_file',
+                'userid' => $user->id,
+                'courseid' => $courseid,
+                'contextid' => $coursemodulecontextid,
+                'pathnamehash' => $file->get_pathnamehash(),
+                'contenthash' => $file->get_contenthash(),
+                'timecreated' => time(),
             );
-            $odessasubmission = new submissions_manager($params);
+
+            new self($params);
         }
     }
 
-    /**
-     * Get existing onlinetext submissions from mod_assign and put references to them
-     * in mdl_odessa_submissions it it doesn't exist.
-     */
-    public static function get_submissions_assignsubmission_onlinetext() {
-        global $DB;
-
-        $sql = '
-SELECT
-    ass.id,
-    \'assignsubmission_onlinetext\' as "component",
-    \'assign_submission\' as "objecttable",
-    ass.assignment as "objectid",
-    ass.userid as "userid",
-    a.course as "courseid"
-FROM
-    {assignsubmission_onlinetext} asso
-    JOIN {assign_submission} ass ON ass.assignment = asso.assignment AND ass.id = asso.submission
-    JOIN {assign} a ON a.id = ass.assignment';
-
-        $onlinetextsubmissions = $DB->get_records_sql($sql);
-
-        foreach ($onlinetextsubmissions as $submission) {
-            // Prepare submissions_manager object params.
-            $params = array(
-                'component' => $submission->component,
-                'objecttable' => $submission->objecttable,
-                'objectid' => $submission->objectid,
-                'userid' => $submission->userid,
-                'courseid' => $submission->courseid,
-            );
-            $odessasubmission = new submissions_manager($params);
-        }
-    }
-
-    public static function get_user_submissions_by_id($objectid) {
-        global $DB;
-        return $DB->get_records('odessa_submissions', array('objectid' => $objectid));
-    }
 }
