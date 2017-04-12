@@ -25,6 +25,8 @@
  */
 
 namespace plagiarism_odessa;
+use core\session\exception;
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 // Odessa submission statuses.
@@ -169,18 +171,17 @@ class submissions_manager {
 
                                 if ($submissionplugin->get_type() == 'onlinetext') {
                                     $onlinetext = $submissionplugin->get_editor_text('onlinetext', $submission->id);
-                                    self::save_onlinetext($course->id, $user->id, $coursemodulecontext->id, $submission->id, $onlinetext);
+                                    self::save_assignsubmission_onlinetext($course->id, $user->id, $coursemodulecontext->id, $submission->id, $onlinetext);
                                 }
 
                                 if ($submissionplugin->get_type() == 'file') {
-
                                     foreach ($submissionplugin->get_files($submission, $user) as $file) {
                                         // Now need to save obtained files in submissions_manager
                                         $params = array(
                                             'sourcecomponent' => 'assignsubmission_file',
                                             'userid' => $user->id,
-                                            'courseid' => $course->id,
-                                            'contextid' => $coursemodulecontext->id,
+                                            'courseid' => $courseid,
+                                            'contextid' => $coursemodulecontextid,
                                             'pathnamehash' => $file->get_pathnamehash(),
                                             'contenthash' => $file->get_contenthash(),
                                         );
@@ -210,7 +211,7 @@ class submissions_manager {
      * @param $submissionid
      * @param $onlinetext
      */
-    public static function save_onlinetext($courseid, $userid, $coursemodulecontextid, $submissionid, $onlinetext) {
+    public static function save_assignsubmission_onlinetext($courseid, $userid, $coursemodulecontextid, $submissionid, $onlinetext) {
 
         $file = self::file_exists_assignsubmission_onlinetext($coursemodulecontextid, $userid, $submissionid);
 
@@ -255,22 +256,4 @@ class submissions_manager {
             return false;
         }
     }
-
-    public static function save_files($submissionplugin, $user, $submission, $courseid, $coursemodulecontextid) {
-        foreach ($submissionplugin->get_files($submission, $user) as $file) {
-            // Now need to save obtained files in submissions_manager
-            $params = array(
-                'sourcecomponent' => 'assignsubmission_file',
-                'userid' => $user->id,
-                'courseid' => $courseid,
-                'contextid' => $coursemodulecontextid,
-                'pathnamehash' => $file->get_pathnamehash(),
-                'contenthash' => $file->get_contenthash(),
-                'timecreated' => time(),
-            );
-
-            new self($params);
-        }
-    }
-
 }

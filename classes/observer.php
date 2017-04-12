@@ -50,9 +50,6 @@ class observer {
         $eventdata = $event->get_data();
         $filepathnamehashes = $eventdata['other']['pathnamehashes'];
 
-        submissions_manager::save_files($eventdata['courseid'], $eventdata['contextinstanceid'],
-            $eventdata['userid'], $eventdata['objectid'], $onlinetext);
-
         $fs = get_file_storage();
         foreach ($filepathnamehashes as $pathnamehash) {
             $file = $fs->get_file_by_hash($pathnamehash);
@@ -74,7 +71,7 @@ class observer {
         $eventdata = $event->get_data();
         $onlinetext = $eventdata['other']['content'];
 
-        submissions_manager::save_onlinetext($eventdata['courseid'], $eventdata['userid'], $eventdata['contextinstanceid'],
+        submissions_manager::save_assignsubmission_onlinetext($eventdata['courseid'], $eventdata['userid'], $eventdata['contextinstanceid'],
             $eventdata['objectid'], $onlinetext);
     }
 }
