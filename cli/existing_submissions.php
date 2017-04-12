@@ -47,7 +47,7 @@ if ($unrecognized) {
 }
 
 if (!$options['plugin']) {
-    $help ="Create alternative component cache file
+    $help = "Create alternative component cache file
 
 Options:
 -h, --help            Print out this help
@@ -59,7 +59,7 @@ Example:
 
     echo $help;
     exit(0);
-} elseif ($options['plugin'] == 'mod_assign') {
+} else if ($options['plugin'] == 'mod_assign') {
     require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
     submissions_manager::get_existing_submissions();
