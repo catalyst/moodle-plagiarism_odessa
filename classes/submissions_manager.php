@@ -69,10 +69,12 @@ class submissions_manager {
      * )
      */
     public function __construct($params) {
-        if ($submission = self::get_existing($params)) {
-        } else {
+
+        $submission = self::get_existing($params);
+        if (!$submission) {
             $submission = self::create_new($params);
         }
+
         $this->id = $submission->id;
         $this->sourcecomponent = $submission->sourcecomponent;
         $this->userid = $submission->userid;
@@ -101,8 +103,11 @@ class submissions_manager {
      */
     public static function create_new($params, $checkexists = false) {
 
-        if ($checkexists and $existingrecord = self::get_existing($params)) {
-            return $existingrecord;
+        if ($checkexists) {
+            $existingrecord = self::get_existing($params);
+            if ($existingrecord) {
+                return $existingrecord;
+            }
         }
 
         global $DB;
