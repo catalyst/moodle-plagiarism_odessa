@@ -23,6 +23,7 @@
 
 $string['odessa'] = 'Odessa plagiarism plugin';
 $string['odessaexplain'] = 'For more information on this plugin see: ';
+$string['odessasettings'] = 'Odessa Settings';
 $string['pluginname'] = 'Odessa plagiarism plugin';
 $string['savedconfigsuccess'] = 'Plagiarism Settings Saved';
 $string['studentdisclosure'] = 'Student Disclosure';

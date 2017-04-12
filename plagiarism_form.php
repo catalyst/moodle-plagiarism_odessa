@@ -21,12 +21,11 @@ require_once($CFG->dirroot.'/lib/formslib.php');
  * Class plagiarism_setup_form is added to the plugin config settings.php
  */
 class plagiarism_setup_form extends moodleform {
-    public function definition () {
-
-        global $CFG;
-
+    public function definition() {
         $mform =& $this->_form;
-        $choices = array('No', 'Yes');
+
+        $mform->addElement('header', 'odessasettings', get_string('odessasettings', 'plagiarism_odessa'));
+
         $mform->addElement('html', get_string('odessaexplain', 'plagiarism_odessa'));
         $mform->addElement('checkbox', 'odessa_use', get_string('useodessa', 'plagiarism_odessa'));
 

@@ -70,7 +70,7 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
             }
         }
     }
-    notify(get_string('savedconfigsuccess', 'plagiarism_odessa'), 'notifysuccess');
+    echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_odessa'), 'notifysuccess');
 }
 $plagiarismsettings = (array)get_config('plagiarism');
 $mform->set_data($plagiarismsettings);
