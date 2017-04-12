@@ -40,10 +40,9 @@ require_capability('moodle/site:config', $context, $USER->id, true, "nopermissio
 
 require_once('plagiarism_form.php');
 $mform = new plagiarism_setup_form();
-// $plagiarismplugin = new plagiarism_plugin_odessa();
 
 if ($mform->is_cancelled()) {
-    redirect('');
+    redirect(new moodle_url('/admin/plagiarism.php'));
 }
 
 echo $OUTPUT->header();
