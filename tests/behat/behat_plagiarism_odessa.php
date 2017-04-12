@@ -38,9 +38,9 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
  */
 class behat_plagiarism_odessa extends behat_base {
     /**
-     * @When /^I use a customised odessa step$/
+     * @Given /^plagiarism plugins are enabled$/
      */
-    public function i_use_a_customised_odessa_step() {
-        // Do nothing.
+    public function plagiarism_plugins_are_enabled() {
+        set_config('enableplagiarism', 1);
     }
 }
