@@ -19,7 +19,7 @@ git submodule add -b master git@github.com:catalyst/moodle-plagiarism_odessa.git
 
 ### By zip archive:
 ```
-wget https://github.com/catalyst/moodle-local_aws/archive/master.zip
+wget https://github.com/catalyst/moodle-plagiarism_odessa/archive/master.zip
 sudo -u www-data mkdir Moodle_website_DocumentRoot/plagiarism/odessa
 sudo -u www-data unzip master.zip -d Moodle_website_DocumentRoot/plagiarism/odessa
 ```
