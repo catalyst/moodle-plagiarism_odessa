@@ -180,8 +180,8 @@ class submissions_manager {
                                         $params = array(
                                             'sourcecomponent' => 'assignsubmission_file',
                                             'userid' => $user->id,
-                                            'courseid' => $courseid,
-                                            'contextid' => $coursemodulecontextid,
+                                            'courseid' => $course->id,
+                                            'contextid' => $coursemodulecontext->id,
                                             'pathnamehash' => $file->get_pathnamehash(),
                                             'contenthash' => $file->get_contenthash(),
                                         );
