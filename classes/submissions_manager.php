@@ -69,8 +69,7 @@ class submissions_manager {
      * )
      */
     public function __construct($params) {
-        if ($submission = $this->get_existing($params)) {
-        } else {
+        if (!($submission = $this->get_existing($params))) {
             $submission = $this->create_new($params);
         }
         $this->id = $submission->id;

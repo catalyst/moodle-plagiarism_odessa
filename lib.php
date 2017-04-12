@@ -52,17 +52,19 @@ class plagiarism_plugin_odessa extends plagiarism_plugin {
         // when $linkarray['file'] is set then this is assignsubmission_file
         if (array_key_exists('file', $linkarray)) {
             $context = context_module::instance($linkarray['cmid']);
-//            $context->
-//            $params = array(
-//                'component' => 'assignsubmission_file',
-//                'objecttable' => 'assign_submission',
-//                'objectid' => $linkarray['assignment'],
-//                'userid' => $linkarray['userid'],
-//                'courseid' => $linkarray['course'],
-//            );
+            /*
+            $context->
+            $params = array(
+                'component' => 'assignsubmission_file',
+                'objecttable' => 'assign_submission',
+                'objectid' => $linkarray['assignment'],
+                'userid' => $linkarray['userid'],
+                'courseid' => $linkarray['course'],
+            );
+            */
         }
 
-        //$submission = new \plagiarism_odessa\submissions_manager($params);
+        // $submission = new \plagiarism_odessa\submissions_manager($params);
 
         $output = 'ODESSA score: 20 ' . PHP_EOL;
         // Add link/information about this file to $output.

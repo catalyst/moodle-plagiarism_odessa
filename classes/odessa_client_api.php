@@ -78,7 +78,7 @@ class odessa_client_api {
             } else {
                 throw new Exception('ERROR: Response for metadata request was not 200 or endpoint location was not provided.');
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             echo $e->getMessage();
         }
     }
@@ -106,7 +106,7 @@ class odessa_client_api {
             } else {
                 throw new Exception('ERROR: Response for file PUT request was not 200.');
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             echo $e->getMessage();
         }
     }
@@ -128,7 +128,7 @@ class odessa_client_api {
             } else {
                 throw new Exception('ERROR: Response for file PUT request was not 200.');
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             echo $e->getMessage();
         }
     }
