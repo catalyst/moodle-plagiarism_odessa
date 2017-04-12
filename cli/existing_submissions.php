@@ -61,8 +61,9 @@ Example:
     exit(0);
 } else if ($options['plugin'] == 'mod_assign') {
     require_once($CFG->dirroot . '/mod/assign/locallib.php');
-
-    submissions_manager::get_existing_submissions();
-
-    echo "End" . PHP_EOL;
+    $modulename = 'assign';
 }
+
+submissions_manager::get_existing_submissions($modulename);
+
+echo "End" . PHP_EOL;

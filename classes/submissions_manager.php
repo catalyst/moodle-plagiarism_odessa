@@ -69,8 +69,9 @@ class submissions_manager {
      * )
      */
     public function __construct($params) {
-        if (!($submission = $this->get_existing($params))) {
-            $submission = $this->create_new($params);
+        if ($submission = self::get_existing($params)) {
+        } else {
+            $submission = self::create_new($params);
         }
         $this->id = $submission->id;
         $this->sourcecomponent = $submission->sourcecomponent;
@@ -86,7 +87,7 @@ class submissions_manager {
         $this->timeupdated = $submission->timeupdated;
     }
 
-    protected function get_existing($params) {
+    public static function get_existing($params) {
         global $DB;
 
         // When checking existing submissions we should not check timecreated.
@@ -94,7 +95,16 @@ class submissions_manager {
         return $DB->get_record('odessa_submissions', $params);
     }
 
-    protected function create_new($params) {
+    /**
+     * @param $params \stdClass object with properties sourcecomponent, userid, courseid, contextid, pathnamehash, contenthash
+     * @return \stdClass
+     */
+    public static function create_new($params, $checkexists = false) {
+
+        if ($checkexists and $existingrecord = self::get_existing($params)) {
+            return $existingrecord;
+        }
+
         global $DB;
         $submission = new \stdClass();
         $submission->sourcecomponent = $params['sourcecomponent'];
@@ -140,77 +150,112 @@ class submissions_manager {
         global $CFG;
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-        $existingsubmissions = array();
-
         foreach (get_courses('all') as $course) {
             $coursecontext = \context_course::instance($course->id);
             foreach (get_enrolled_users($coursecontext) as $user) {
                 foreach (get_coursemodules_in_course($modulename, $course->id) as $coursemodule) {
                     $coursemodulecontext = \context_module::instance($coursemodule->id);
-                    $assign = new \assign($coursemodulecontext, $coursemodule, $course);
-                    foreach ($assign->get_submission_plugins() as $submissionplugin) {
-                        if ($submissionplugin->get_type() == 'onlinetext') {
-                            $submission = $assign->get_user_submission($user->id, false);
-                            if ($submission) {
-                                $onlinetext = $submissionplugin->get_editor_text('onlinetext', $submission->id);
-                                self::save_onlinetext($course->id, $coursemodulecontext->id, $user->id, $submission->id, $onlinetext);
-                            }
-                        }
+                    if ($modulename == 'assign') {
+                        $assign = new \assign($coursemodulecontext, $coursemodule, $course);
+                        $submission = $assign->get_user_submission($user->id, false);
+                        if ($submission) {
+                            // mod_assign has submission sub-plugins: comments, file, onlinetext.
+                            foreach ($assign->get_submission_plugins() as $submissionplugin) {
 
-                        if ($submissionplugin->get_type() == 'file') {
-                            // Fetch file obejcts
-                            $submission = $assign->get_user_submission($user->id, false);
-                            if ($submission) {
-                                self::save_files($submissionplugin, $user, $submission, $course->id, $coursemodulecontext->id);
+                                if ($submissionplugin->get_type() == 'onlinetext') {
+                                    $onlinetext = $submissionplugin->get_editor_text('onlinetext', $submission->id);
+                                    self::save_onlinetext($course->id, $user->id, $coursemodulecontext->id, $submission->id, $onlinetext);
+                                }
+
+                                if ($submissionplugin->get_type() == 'file') {
+
+                                    foreach ($submissionplugin->get_files($submission, $user) as $file) {
+                                        // Now need to save obtained files in submissions_manager
+                                        $params = array(
+                                            'sourcecomponent' => 'assignsubmission_file',
+                                            'userid' => $user->id,
+                                            'courseid' => $course->id,
+                                            'contextid' => $coursemodulecontext->id,
+                                            'pathnamehash' => $file->get_pathnamehash(),
+                                            'contenthash' => $file->get_contenthash(),
+                                        );
+
+                                        self::create_new($params, true);
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
-
-        return $existingsubmissions;
     }
 
-    public static function save_onlinetext($courseid, $coursemodulecontextid, $userid, $submissionid, $onlinetext) {
-        $contenthash = sha1($onlinetext);
+    /**
+     * Save onlinetext submission via Moodle File API.
+     * If a moodle file already exists:
+     *   add record to mdl_odessa_submissions with existing contenthash
+     * If a moodle file doesn't exist:
+     *   create a moodle file
+     *   add a new record to mdl_odessa_submissions
+     *
+     * @param $courseid
+     * @param $userid
+     * @param $coursemodulecontextid
+     * @param $submissionid
+     * @param $onlinetext
+     */
+    public static function save_onlinetext($courseid, $userid, $coursemodulecontextid, $submissionid, $onlinetext) {
 
+        $file = self::file_exists_assignsubmission_onlinetext($coursemodulecontextid, $userid, $submissionid);
+
+        if (!$file) {
+            $file = self::create_file_assignsubmission_onlinetext($coursemodulecontextid, $userid, $submissionid, $onlinetext);
+        }
+
+        $params = array();
+        $params['sourcecomponent'] = 'assignsubmission_onlinetext';
+        $params['courseid'] = $courseid;
+        $params['userid'] = $userid;
+        $params['contextid'] = $coursemodulecontextid;
+        $params['pathnamehash'] = $file->get_pathnamehash();
+        $params['contenthash'] = $file->get_contenthash();
+
+        self::create_new($params, true);
+    }
+
+    public static function create_file_assignsubmission_onlinetext($contextid, $userid, $itemid, $content) {
         $fs = get_file_storage();
 
         $filerecord = new \stdClass;
         $filerecord->component = 'odessa_submissions';
         $filerecord->filearea = 'assignsubmission_onlinetext';
-        $filerecord->contextid = $coursemodulecontextid;
+        $filerecord->contextid = $contextid;
         $filerecord->userid = $userid;
-        $filerecord->itemid = $submissionid;
+        $filerecord->itemid = $itemid;
         $filerecord->filename = 'onlinetext.txt';
         $filerecord->filepath = '/';
 
-        // If file with this contenthash already exists we get reference to that file.
-        if ($fs->content_exists($contenthash)) {
-            $file = $fs->get_file_instance($filerecord);
-        } else { // If it doesn't exist then we create it.
-            $file = $fs->create_file_from_string($filerecord, $onlinetext);
+        $file = $fs->create_file_from_string($filerecord, $content);
+        return $file;
+    }
+
+    public static function file_exists_assignsubmission_onlinetext($contextid, $userid, $submissionid) {
+        $fs = get_file_storage();
+        $file = $fs->get_file($contextid, 'odessa_submissions', 'assignsubmission_onlinetext', $submissionid, '/', 'onlinetext.txt');
+
+        if ($file and $file->get_userid() == $userid) {
+            return $file;
+        } else {
+            return false;
         }
-
-        $params = array(
-            'component' => 'assignsubmission_onlinetext',
-            'userid' => $userid,
-            'courseid' => $courseid,
-            'contextid' => $coursemodulecontextid,
-            'pathnamehash' => $file->get_pathnamehash(),
-            'contenthash' => $file->get_contenthash(),
-            'timecreated' => time(),
-        );
-
-        new self($params);
     }
 
     public static function save_files($submissionplugin, $user, $submission, $courseid, $coursemodulecontextid) {
         foreach ($submissionplugin->get_files($submission, $user) as $file) {
             // Now need to save obtained files in submissions_manager
             $params = array(
-                'component' => 'assignsubmission_file',
+                'sourcecomponent' => 'assignsubmission_file',
                 'userid' => $user->id,
                 'courseid' => $courseid,
                 'contextid' => $coursemodulecontextid,

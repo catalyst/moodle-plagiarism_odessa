@@ -66,7 +66,7 @@ class observer {
                 'timecreated' => $eventdata['timecreated'],
             );
 
-            new submissions_manager($params);
+            submissions_manager::create_new($params, true);
         }
     }
 
@@ -74,7 +74,7 @@ class observer {
         $eventdata = $event->get_data();
         $onlinetext = $eventdata['other']['content'];
 
-        submissions_manager::save_onlinetext($eventdata['courseid'], $eventdata['contextinstanceid'],
-            $eventdata['userid'], $eventdata['objectid'], $onlinetext);
+        submissions_manager::save_onlinetext($eventdata['courseid'], $eventdata['userid'], $eventdata['contextinstanceid'],
+            $eventdata['objectid'], $onlinetext);
     }
 }
