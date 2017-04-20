@@ -28,6 +28,10 @@ class plagiarism_setup_form extends moodleform {
 
         $mform->addElement('html', get_string('odessaexplain', 'plagiarism_odessa'));
         $mform->addElement('checkbox', 'odessa_use', get_string('useodessa', 'plagiarism_odessa'));
+        $mform->addElement('checkbox', 'odessa_mod_assign', get_string('odessamodassign', 'plagiarism_odessa'));
+        $mform->addElement('checkbox', 'odessa_mod_forum', get_string('odessamodforum', 'plagiarism_odessa'));
+        $mform->addElement('checkbox', 'odessa_mod_workshop', get_string('odessamodworkshop', 'plagiarism_odessa'));
+
 
         $mform->addElement('textarea', 'odessa_student_disclosure', get_string('studentdisclosure', 'plagiarism_odessa'),
             'wrap="virtual" rows="6" cols="50"');

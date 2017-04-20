@@ -51,22 +51,18 @@ if (($data = $mform->get_data()) && confirm_sesskey()) {
     if (!isset($data->odessa_use)) {
         $data->odessa_use = 0;
     }
+    if (!isset($data->odessa_mod_assign)) {
+        $data->odessa_mod_assign = 0;
+    }
+    if (!isset($data->odessa_mod_forum)) {
+        $data->odessa_mod_forum = 0;
+    }
+    if (!isset($data->odessa_mod_workshop)) {
+        $data->odessa_mod_workshop = 0;
+    }
     foreach ($data as $field => $value) {
         if (strpos($field, 'odessa') === 0) {
-            if ($tiiconfigfield = $DB->get_record('config_plugins', array('name' => $field, 'plugin' => 'plagiarism'))) {
-                $tiiconfigfield->value = $value;
-                if (!$DB->update_record('config_plugins', $tiiconfigfield)) {
-                    error("errorupdating");
-                }
-            } else {
-                $tiiconfigfield = new stdClass();
-                $tiiconfigfield->value = $value;
-                $tiiconfigfield->plugin = 'plagiarism';
-                $tiiconfigfield->name = $field;
-                if (!$DB->insert_record('config_plugins', $tiiconfigfield)) {
-                    error("errorinserting");
-                }
-            }
+            set_config($field, $value, 'plagiarism');
         }
     }
     echo $OUTPUT->notification(get_string('savedconfigsuccess', 'plagiarism_odessa'), 'notifysuccess');
