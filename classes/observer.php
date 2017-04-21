@@ -71,7 +71,33 @@ class observer {
         $eventdata = $event->get_data();
         $onlinetext = $eventdata['other']['content'];
 
-        submissions_manager::save_assignsubmission_onlinetext($eventdata['courseid'], $eventdata['userid'], $eventdata['contextinstanceid'],
-            $eventdata['objectid'], $onlinetext);
+    }
+
+    public static function callback_assessable_uploaded_mod_forum($event) {
+        $eventdata = $event->get_data();
+        $onlinetext = $eventdata['other']['content'];
+        submissions_manager::save_onlinetext($eventdata['component'], $eventdata['courseid'], $eventdata['userid'], $eventdata['contextinstanceid'], $eventdata['objectid'], $onlinetext);
+
+        $filepathnamehashes = $eventdata['other']['pathnamehashes'];
+
+        $fs = get_file_storage();
+        foreach ($filepathnamehashes as $pathnamehash) {
+            $file = $fs->get_file_by_hash($pathnamehash);
+            $params = array(
+                'sourcecomponent' => $eventdata['component'],
+                'userid' => $eventdata['userid'],
+                'courseid' => $eventdata['courseid'],
+                'contextid' => $eventdata['contextid'],
+                'pathnamehash' => $pathnamehash,
+                'contenthash' => $file->get_contenthash(),
+                'timecreated' => $eventdata['timecreated'],
+            );
+
+            submissions_manager::create_new($params, true);
+        }
+    }
+
+    public static function callback_assessable_uploaded_mod_workshop($event) {
+        $eventdata = $event->get_data();
     }
 }

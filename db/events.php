@@ -38,6 +38,6 @@ $observers = array (
     ),
     array(
         'eventname' => '\mod_forum\event\assessable_uploaded',
-        'callback' => 'plagiarism_odessa\observer::callback_upon_assessable_uploaded',
+        'callback' => 'plagiarism_odessa\observer::callback_assessable_uploaded_mod_forum',
     ),
 );

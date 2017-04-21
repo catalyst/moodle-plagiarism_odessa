@@ -153,41 +153,39 @@ class submissions_manager {
      *
      * @param string $modulename
      */
-    public static function get_existing_submissions($modulename = 'assign') {
+    public static function get_existing_submissions_mod_assign() {
         global $CFG;
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
         foreach (get_courses('all') as $course) {
             $coursecontext = \context_course::instance($course->id);
             foreach (get_enrolled_users($coursecontext) as $user) {
-                foreach (get_coursemodules_in_course($modulename, $course->id) as $coursemodule) {
+                foreach (get_coursemodules_in_course('assign', $course->id) as $coursemodule) {
                     $coursemodulecontext = \context_module::instance($coursemodule->id);
-                    if ($modulename == 'assign') {
-                        $assign = new \assign($coursemodulecontext, $coursemodule, $course);
-                        $submission = $assign->get_user_submission($user->id, false);
-                        if ($submission) {
-                            // mod_assign has submission sub-plugins: comments, file, onlinetext.
-                            foreach ($assign->get_submission_plugins() as $submissionplugin) {
+                    $assign = new \assign($coursemodulecontext, $coursemodule, $course);
+                    $submission = $assign->get_user_submission($user->id, false);
+                    if ($submission) {
+                        // mod_assign has submission sub-plugins: comments, file, onlinetext.
+                        foreach ($assign->get_submission_plugins() as $submissionplugin) {
 
-                                if ($submissionplugin->get_type() == 'onlinetext') {
-                                    $onlinetext = $submissionplugin->get_editor_text('onlinetext', $submission->id);
-                                    self::save_assignsubmission_onlinetext($course->id, $user->id, $coursemodulecontext->id, $submission->id, $onlinetext);
-                                }
+                            if ($submissionplugin->get_type() == 'onlinetext') {
+                                $onlinetext = $submissionplugin->get_editor_text('onlinetext', $submission->id);
+                                self::save_onlinetext('assignsubmission_onlinetext', $course->id, $user->id, $coursemodulecontext->id, $submission->id, $onlinetext);
+                            }
 
-                                if ($submissionplugin->get_type() == 'file') {
-                                    foreach ($submissionplugin->get_files($submission, $user) as $file) {
-                                        // Now need to save obtained files in submissions_manager
-                                        $params = array(
-                                            'sourcecomponent' => 'assignsubmission_file',
-                                            'userid' => $user->id,
-                                            'courseid' => $course->id,
-                                            'contextid' => $coursemodulecontext->id,
-                                            'pathnamehash' => $file->get_pathnamehash(),
-                                            'contenthash' => $file->get_contenthash(),
-                                        );
+                            if ($submissionplugin->get_type() == 'file') {
+                                foreach ($submissionplugin->get_files($submission, $user) as $file) {
+                                    // Now need to save obtained files in submissions_manager
+                                    $params = array(
+                                        'sourcecomponent' => 'assignsubmission_file',
+                                        'userid' => $user->id,
+                                        'courseid' => $course->id,
+                                        'contextid' => $coursemodulecontext->id,
+                                        'pathnamehash' => $file->get_pathnamehash(),
+                                        'contenthash' => $file->get_contenthash(),
+                                    );
 
-                                        self::create_new($params, true);
-                                    }
+                                    self::create_new($params, true);
                                 }
                             }
                         }
@@ -211,16 +209,16 @@ class submissions_manager {
      * @param $submissionid
      * @param $onlinetext
      */
-    public static function save_assignsubmission_onlinetext($courseid, $userid, $coursemodulecontextid, $submissionid, $onlinetext) {
+    public static function save_onlinetext($sourcecomponent, $courseid, $userid, $coursemodulecontextid, $submissionid, $onlinetext) {
 
-        $file = self::file_exists_assignsubmission_onlinetext($coursemodulecontextid, $userid, $submissionid);
+        $file = self::file_exists_onlinetext($sourcecomponent, $coursemodulecontextid, $userid, $submissionid);
 
         if (!$file) {
-            $file = self::create_file_assignsubmission_onlinetext($coursemodulecontextid, $userid, $submissionid, $onlinetext);
+            $file = self::create_file_onlinetext($sourcecomponent, $coursemodulecontextid, $userid, $submissionid, $onlinetext);
         }
 
         $params = array();
-        $params['sourcecomponent'] = 'assignsubmission_onlinetext';
+        $params['sourcecomponent'] = $sourcecomponent;
         $params['courseid'] = $courseid;
         $params['userid'] = $userid;
         $params['contextid'] = $coursemodulecontextid;
@@ -230,12 +228,12 @@ class submissions_manager {
         self::create_new($params, true);
     }
 
-    public static function create_file_assignsubmission_onlinetext($contextid, $userid, $itemid, $content) {
+    public static function create_file_onlinetext($sourcecomponent, $contextid, $userid, $itemid, $content) {
         $fs = get_file_storage();
 
         $filerecord = new \stdClass;
         $filerecord->component = 'odessa_submissions';
-        $filerecord->filearea = 'assignsubmission_onlinetext';
+        $filerecord->filearea = $sourcecomponent;
         $filerecord->contextid = $contextid;
         $filerecord->userid = $userid;
         $filerecord->itemid = $itemid;
@@ -246,9 +244,9 @@ class submissions_manager {
         return $file;
     }
 
-    public static function file_exists_assignsubmission_onlinetext($contextid, $userid, $submissionid) {
+    public static function file_exists_onlinetext($sourcecomponent, $contextid, $userid, $submissionid) {
         $fs = get_file_storage();
-        $file = $fs->get_file($contextid, 'odessa_submissions', 'assignsubmission_onlinetext', $submissionid, '/', 'onlinetext.txt');
+        $file = $fs->get_file($contextid, 'odessa_submissions', $sourcecomponent, $submissionid, '/', 'onlinetext.txt');
 
         if ($file and $file->get_userid() == $userid) {
             return $file;
