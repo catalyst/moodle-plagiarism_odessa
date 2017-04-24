@@ -60,10 +60,11 @@ Example:
     echo $help;
     exit(0);
 } else if ($options['plugin'] == 'mod_assign') {
-    require_once($CFG->dirroot . '/mod/assign/locallib.php');
-    $modulename = 'assign';
+    submissions_manager::get_existing_submissions_mod_assign();
+} else if ($options['plugin'] == 'mod_forum') {
+    submissions_manager::get_existing_submissions_mod_forum();
+} else if ($options['plugin'] == 'mod_workshop') {
+    submissions_manager::get_existing_submissions_mod_workshop();
 }
-
-submissions_manager::get_existing_submissions($modulename);
 
 echo "End" . PHP_EOL;

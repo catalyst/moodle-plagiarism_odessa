@@ -55,6 +55,7 @@ class observer {
             $file = $fs->get_file_by_hash($pathnamehash);
             $params = array(
                 'sourcecomponent' => $eventdata['component'],
+                'type' => 'file',
                 'userid' => $eventdata['userid'],
                 'courseid' => $eventdata['courseid'],
                 'contextid' => $eventdata['contextid'],
@@ -71,7 +72,48 @@ class observer {
         $eventdata = $event->get_data();
         $onlinetext = $eventdata['other']['content'];
 
-        submissions_manager::save_assignsubmission_onlinetext($eventdata['courseid'], $eventdata['userid'], $eventdata['contextinstanceid'],
+        submissions_manager::save_onlinetext($eventdata['courseid'], $eventdata['userid'], $eventdata['contextinstanceid'],
             $eventdata['objectid'], $onlinetext);
+
+    }
+
+    /**
+     * Retrieves the submission data from the event and registers it in odessa submission manager queue.
+     * Submission data here could be a combination of onlinetext (forum post text) and attached files.
+     *
+     * @param $event \mod_forum\event\assessable_uploaded event.
+     */
+    public static function callback_assessable_uploaded_mod_forum($event) {
+        $eventdata = $event->get_data();
+
+        // Record files from the forum post in odessa submission manager queue.
+        $filepathnamehashes = $eventdata['other']['pathnamehashes'];
+
+        $fs = get_file_storage();
+        foreach ($filepathnamehashes as $pathnamehash) {
+            $file = $fs->get_file_by_hash($pathnamehash);
+            $params = array(
+                'sourcecomponent' => 'mod_forum',
+                'type' => 'file',
+                'userid' => $eventdata['userid'],
+                'courseid' => $eventdata['courseid'],
+                'contextid' => $eventdata['contextid'],
+                'pathnamehash' => $pathnamehash,
+                'contenthash' => $file->get_contenthash(),
+                'timecreated' => $eventdata['timecreated'],
+            );
+
+            submissions_manager::create_new($params, true);
+        }
+
+        // Record onlinetext (forum post text) in odessa submission manager queue.
+        $onlinetext = $eventdata['other']['content'];
+        submissions_manager::save_onlinetext('mod_forum', $eventdata['courseid'], $eventdata['userid'],
+            $eventdata['contextid'], $eventdata['objectid'], $onlinetext);
+    }
+
+    public static function callback_assessable_uploaded_mod_workshop($event) {
+        // TODO.
+        //$eventdata = $event->get_data();
     }
 }
