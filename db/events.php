@@ -35,7 +35,7 @@ $observers = array (
     // Observers for events in mod_workshop.
     array(
         'eventname' => '\mod_workshop\event\assessable_uploaded',
-        'callback' => 'plagiarism_odessa\observer::callback_upon_assessable_uploaded',
+        'callback' => 'plagiarism_odessa\observer::callback_assessable_uploaded_mod_workshop',
     ),
     // Observers for events in mod_forum.
     array(

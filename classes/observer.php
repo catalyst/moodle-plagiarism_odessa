@@ -113,7 +113,34 @@ class observer {
     }
 
     public static function callback_assessable_uploaded_mod_workshop($event) {
-        // TODO.
-        //$eventdata = $event->get_data();
+        $eventdata = $event->get_data();
+
+        // Record files from the forum post in odessa submission manager queue.
+        $filepathnamehashes = $eventdata['other']['pathnamehashes'];
+
+        $fs = get_file_storage();
+        foreach ($filepathnamehashes as $pathnamehash) {
+            $file = $fs->get_file_by_hash($pathnamehash);
+            // for some reason this event returns the containing folder '.' along with actual file.
+            if (!($file->get_filename() == '.')) {
+                $params = array(
+                    'sourcecomponent' => 'mod_workshop',
+                    'type' => 'file',
+                    'userid' => $eventdata['userid'],
+                    'courseid' => $eventdata['courseid'],
+                    'contextid' => $eventdata['contextid'],
+                    'pathnamehash' => $pathnamehash,
+                    'contenthash' => $file->get_contenthash(),
+                    'timecreated' => $eventdata['timecreated'],
+                );
+
+                submissions_manager::create_new($params, true);
+            }
+        }
+
+        // Record onlinetext workshop submission in odessa submission manager queue.
+        $onlinetext = $eventdata['other']['content'];
+        submissions_manager::save_onlinetext('mod_workshop', $eventdata['courseid'], $eventdata['userid'],
+            $eventdata['contextid'], $eventdata['objectid'], $onlinetext);
     }
 }

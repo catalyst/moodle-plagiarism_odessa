@@ -244,6 +244,29 @@ class submissions_manager {
     }
 
     /**
+     * Go through the list of all courses, enrolled users, mod_workshop instances
+     * and record them in odessa submission manager queue.
+     */
+    public static function get_existing_submissions_mod_workshop() {
+        global $CFG;
+        require_once($CFG->dirroot . '/mod/workshop/locallib.php');
+
+        foreach (get_courses('all') as $course) {
+            $workshops = get_coursemodules_in_course('workshop', $course->id);
+            foreach ($workshops as $workshop) {
+                $workshop = $DB->get_record('workshop', array('id' => $cm->instance), '*', MUST_EXIST);
+                $workshop = new workshop($workshop, $cm, $course);
+
+
+                $coursecontext = \context_course::instance($course->id);
+                foreach (get_enrolled_users($coursecontext) as $user) {
+
+                }
+            }
+        }
+    }
+
+    /**
      * Save onlinetext submission via Moodle File API.
      * If a moodle file already exists:
      *   add record to mdl_odessa_submissions with existing contenthash
