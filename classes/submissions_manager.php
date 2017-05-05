@@ -248,15 +248,19 @@ class submissions_manager {
      * and record them in odessa submission manager queue.
      */
     public static function get_existing_submissions_mod_workshop() {
-        global $CFG;
+        global $CFG, $DB;
         require_once($CFG->dirroot . '/mod/workshop/locallib.php');
 
         foreach (get_courses('all') as $course) {
             $workshops = get_coursemodules_in_course('workshop', $course->id);
             foreach ($workshops as $workshop) {
+                $cm = get_coursemodule_from_id('workshop', $workshop->id);
                 $workshop = $DB->get_record('workshop', array('id' => $cm->instance), '*', MUST_EXIST);
-                $workshop = new workshop($workshop, $cm, $course);
-
+                $workshop = new \workshop($workshop, $cm, $course);
+                // TODO:
+                // Loop through all workshops and:
+                // queue all onlinetext submissions via self::save_onlinetext()
+                // queue all file submissions via self::create_new()
 
                 $coursecontext = \context_course::instance($course->id);
                 foreach (get_enrolled_users($coursecontext) as $user) {
